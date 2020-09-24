@@ -50,9 +50,58 @@ sep_new <-
 
 a) Make a table using **gt** which shows the five courses with the biggest increase. Use the [How to make a table](https://davidkane9.github.io/PPBDS/tools.html#how-to-make-a-table) section of *The Primer*.
 
+```{r}
+the_data <- inner_join(sep_old, sep_new, 
+                       by = c("id", "title", "name", "department"), 
+                       suffix = c("_old", "_new")) %>% 
+  mutate(differ = u_grad_new - u_grad_old)  
+  
+big_dec <- the_data %>% 
+  filter(str_detect(differ, "-") == TRUE) %>% 
+  arrange(differ) %>% 
+  slice(1:5)
+
+big_inc <- the_data %>% 
+  filter(str_detect(differ, "-") == FALSE) %>% 
+  arrange(desc(differ)) %>% 
+  slice(1:5)
+
+plotting_data <- full_join(big_inc, big_dec, 
+                           by = c("id", "title", "name", "department",
+                                       "u_grad_new", "u_grad_old", "differ")) 
+
+
+```
+
+
+
 b) Make a table using **gt** which shows the five courses with the biggest decrease.
 
+```{r}
+
+big_dec %>% select(title, name, department, differ) %>% 
+gt() %>%
+   tab_header(title = "Largest Decreases in Course Enrollment", 
+              subtitle = "Harvard College Fall 2020")
+
+
+```
+
+
+
 c) Make a nice looking graphic which shows these 10 courses.
+
+```{r}
+ggplot(plotting_data, mapping = aes(reorder(name, differ), differ)) + 
+  geom_col(fill = "blue") +
+  theme(axis.text.x=element_text(angle = 75, vjust = 0.5)) +
+  labs( 
+    title = "Change in Course Enrollment \n Fall 2020: September 1-22",
+    x = "Course Title", 
+    y = "Change in Enrollment") +
+  coord_flip()
+```
+
 
 d) Write down some thoughts about what might explain these increases and decreases. Or is it all just random? How would we know?
 
